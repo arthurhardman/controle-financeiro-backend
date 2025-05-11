@@ -9,13 +9,25 @@ process.env.JWT_SECRET = 'controle_financeiro_secret_key_2024';
 
 const app = express();
 
-// Configuração do CORS
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000' || 'https://controle-financeiro-front-7egq.vercel.app/',
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'https://controle-financeiro-front-7egq.vercel.app/'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}));
+};
+
+app.use(cors(corsOptions));
+
+app.disable('x-powered-by');
+
+app.use((res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  next();
+});
 
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
