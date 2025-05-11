@@ -12,7 +12,7 @@ const app = express();
 const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'https://controle-financeiro-front-7egq.vercel.app/'
+    'https://controle-financeiro-front-7egq.vercel.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
