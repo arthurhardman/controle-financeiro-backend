@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "teste",
+    "database": "financeapp",
+    "host": "localhost",
+    "dialect": "postgres",
+    "logging": false
+  },
+  "test": {
+    "username": "postgres",
+    "password": "teste",
+    "database": "financeapp_test",
+    "host": "localhost",
+    "dialect": "postgres",
+    "logging": false
+  },
+  "production": {
+    "username": "postgres",
+    "password": "teste",
+    "database": "financeapp_prod",
+    "host": "localhost",
+    "dialect": "postgres",
+    "logging": false
+  }
+}
