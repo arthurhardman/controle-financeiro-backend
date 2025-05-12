@@ -94,6 +94,7 @@ router.post('/login', async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -119,7 +120,7 @@ router.get('/me', auth, async (req, res) => {
 router.get('/profile', auth, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: ['id', 'name', 'email', 'settings', 'photo'],
+      attributes: ['id', 'name', 'email', 'settings', 'photo', 'role'],
     });
 
     if (!user) {
@@ -217,6 +218,60 @@ router.post('/photo', auth, upload.single('photo'), async (req, res) => {
     res.json({ photo: user.photo });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao salvar foto' });
+  }
+});
+
+// Listar todos os usuários (apenas para admin)
+router.get('/users', auth, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ error: 'Acesso negado' });
+    }
+    const users = await User.findAll({
+      attributes: { exclude: ['password'] },
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(users);
+  } catch (error) {
+    console.error('Erro ao listar usuários:', error);
+    res.status(500).json({ error: 'Erro ao listar usuários' });
+  }
+});
+
+// Atualizar nome e role de um usuário (apenas para admin)
+router.put('/users/:id', auth, async (req, res) => {
+  try {
+    const adminUser = await User.findByPk(req.user.id);
+    if (!adminUser || adminUser.role !== 'admin') {
+      return res.status(403).json({ error: 'Acesso negado' });
+    }
+
+    const { id } = req.params;
+    const { name, role } = req.body;
+
+    if (!name || !role) {
+      return res.status(400).json({ error: 'Nome e role são obrigatórios' });
+    }
+    if (!['admin', 'visitante'].includes(role)) {
+      return res.status(400).json({ error: 'Role inválido' });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    user.name = name;
+    user.role = role;
+    await user.save();
+
+    // Retorna o usuário atualizado sem a senha
+    const { password, ...userData } = user.toJSON();
+    res.json(userData);
+  } catch (error) {
+    console.error('Erro ao atualizar usuário:', error);
+    res.status(500).json({ error: 'Erro ao atualizar usuário' });
   }
 });
 
