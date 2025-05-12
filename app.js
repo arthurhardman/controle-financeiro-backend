@@ -58,21 +58,32 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
+// Verificar e executar migrações pendentes em produção
+if (process.env.NODE_ENV === 'production') {
+  const { exec } = require('child_process');
+  console.log('Verificando migrações pendentes...');
+  exec('npx sequelize-cli db:migrate', (error, stdout, stderr) => {
+    if (error) {
+      console.error('Erro ao executar migrações:', error);
+      return;
+    }
+    if (stderr) {
+      console.error('Erro:', stderr);
+      return;
+    }
+    console.log('Migrações executadas com sucesso:', stdout);
+  });
+}
 
-// Sincroniza o banco de dados e inicia o servidor
-sequelize.authenticate()
-  .then(() => {
-    console.log('Conexão com o banco de dados estabelecida com sucesso.');
-    return sequelize.sync({ alter: process.env.NODE_ENV !== 'production' });
-  })
-  .then(() => {
-    console.log('Banco de dados sincronizado.');
-    app.listen(PORT, () => {
-      console.log(`Servidor rodando na porta ${PORT}`);
-      console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
-    });
-  })
-  .catch(err => {
-    console.error('Erro ao sincronizar banco de dados:', err);
-  }); 
+// Sincronizar banco de dados (apenas em desenvolvimento)
+if (process.env.NODE_ENV !== 'production') {
+  sequelize.sync({ alter: true })
+    .then(() => console.log('Banco de dados sincronizado'))
+    .catch(err => console.error('Erro ao sincronizar banco de dados:', err));
+}
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
+}); 
